@@ -50,9 +50,11 @@ public class Controller {
                     controllerElement.appendChild(Description);
 
                 }
+                else{
 
-                Element EngineeringUnit = doc.createElement("EngineeringUnit");
-                controllerElement.appendChild(EngineeringUnit);
+                Element element = doc.createElement(attribute_key_value[0].strip());
+                controllerElement.appendChild(element);
+                }
             }
             else {
                 Attr attribute = doc.createAttribute(attribute_key_value[0].strip());

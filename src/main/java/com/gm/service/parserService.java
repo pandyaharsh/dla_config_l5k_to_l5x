@@ -1,10 +1,12 @@
 package com.gm.service;
 
 import com.gm.module.Controller;
+import com.gm.module.Datatypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.ProcessingInstruction;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -25,7 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-public class parserService extends Controller {
+public class parserService {
 
 
     public void read_file() throws IOException {
@@ -33,9 +35,10 @@ public class parserService extends Controller {
 
         HashMap<String, String> regexMapping = new HashMap<String, String>();
         regexMapping.put("controller","CONTROLLER\\s*(\\S*)\\s*\\((.*\\n*[^)]*)\\)");
+        regexMapping.put("datatype", "(?s)(?=DATATYPE)(.*?)(?<=\\sEND_DATATYPE)");
 
 
-        Path path = Paths.get("C:/Users/harsh/Downloads/rt.L5K");
+        Path path = Paths.get("C:/Users/meets/Downloads/rt.L5K");
 
         String data = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
 
@@ -44,13 +47,22 @@ public class parserService extends Controller {
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.newDocument();
 
+            ProcessingInstruction newPI = doc.createProcessingInstruction("myxml", "version=\"10.0\"");
+            doc.insertBefore(newPI, doc.getDocumentElement());
+
             // controller element
             Element controllerElement = doc.createElement("controller");
             doc.appendChild(controllerElement);
 
             Controller controller = new Controller();
             controller.controllerHandler(data, doc,regexMapping.get("controller"), controllerElement);
-            System.out.println("hello");
+
+            Element Datatypes = doc.createElement("Datatypes");
+            controllerElement.appendChild(Datatypes);
+
+
+            Datatypes datatypes = new Datatypes();
+            datatypes.handleDatatype(data, doc, regexMapping.get("datatype"), Datatypes);
 
 
             // write the content into xml file

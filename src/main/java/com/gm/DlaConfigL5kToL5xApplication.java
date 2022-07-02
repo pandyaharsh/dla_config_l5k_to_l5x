@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.io.IOException;
 
 @SpringBootApplication
-public class DlaConfigL5kToL5xApplication extends parserService {
+public class DlaConfigL5kToL5xApplication{
 
     public static void main(String[] args) throws IOException {
         SpringApplication.run(DlaConfigL5kToL5xApplication.class, args);
