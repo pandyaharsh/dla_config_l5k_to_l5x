@@ -5,28 +5,29 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Controller {
+    updateData update_data = new updateData();
 
-
-    public Matcher matchRegex(String regex, String data){
-        final String controller_regex = regex;
-        final Pattern pattern = Pattern.compile(controller_regex, Pattern.MULTILINE);
-        final Matcher matcher = pattern.matcher(data);
-
-        return matcher;
-    }
     public void controllerHandler(String data, Document doc, String regex, Element controllerElement) {
 
+        HashMap<String, String[]> exceptions = new HashMap<>();
+        exceptions.put("RedundancyEnabled", new String[]{"RedundancyInfo", "Enabled"});
+        exceptions.put("KeepTestEditsOnSwitchOver", new String[]{"RedundancyInfo", "KeepTestEditsOnSwitchOver"});
+        exceptions.put("SecurityCode", new String[]{"Security", "Code"});
+        exceptions.put("ChangesToDetect", new String[]{"Security", "ChangesToDetect"});
+        exceptions.put("SafetyLocked", new String[]{"SafetyInfo", "SafetyLocked"});
+        exceptions.put("ConfiguredSafetyIOAlways", new String[]{"SafetyInfo", "ConfiguredSafetyIOAlways"});
+        exceptions.put("SignatureRunModeProtect", new String[]{"SafetyInfo", "SignatureRunModeProtect"});
+        exceptions.put("SafetyLevel", new String[]{"SafetyInfo", "SafetyLevel"});
 
         String[] elements = {"Description", "EngineeringUnit"};
 
+        String name = "", attributes = "";
 
-        String name="", attributes = "";
-
-        Matcher matcher = matchRegex(regex,data);
+        Matcher matcher = update_data.matchRegex(regex, data);
         if (matcher.find()) {
             name = matcher.group(1);
             attributes = matcher.group(2);
@@ -36,33 +37,46 @@ public class Controller {
         controllerName.setValue(name);
         controllerElement.setAttributeNode(controllerName);
 
-        String[] arrOfattributes = attributes.split(",", -1);
-        for (String attr: arrOfattributes){
+        String[] arr_of_attributes = attributes.split(",", -1);
+
+        for (String attr : arr_of_attributes) {
             String[] attribute_key_value = attr.split(":=", -1);
-//                System.out.println(attribute_key_value[0].strip()+"="+attribute_key_value[1].strip());
 
             if (Arrays.asList(elements).contains(attribute_key_value[0].strip())) {
-//                 supercars element
-                if (attribute_key_value[0].strip().equals("Description")){
-
-                    Element Description = doc.createElement("Description");
-                    Description.appendChild(doc.createCDATASection(attribute_key_value[1].strip()));
-                    controllerElement.appendChild(Description);
-
+                if (attribute_key_value[0].strip().equals("Description"))
+                    update_data.update_description(doc, attribute_key_value[1].strip(), controllerElement);
+                else
+                    update_data.create_element(attribute_key_value[0].strip(), controllerElement, doc);
+            } else {
+                if (!exceptions.containsKey(attribute_key_value[0].strip())) {
+                    update_data.create_attribute(attribute_key_value[0].strip(), attribute_key_value[1].strip(), controllerElement, doc);
                 }
-                else{
-
-                Element element = doc.createElement(attribute_key_value[0].strip());
-                controllerElement.appendChild(element);
-                }
-            }
-            else {
-                Attr attribute = doc.createAttribute(attribute_key_value[0].strip());
-                attribute.setValue(attribute_key_value[1].strip());
-                controllerElement.setAttributeNode(attribute);
             }
         }
 
+        Element Security = update_data.create_element("Security", controllerElement, doc);
+        Element SafetyInfo = update_data.create_element("SafetyInfo", controllerElement, doc);
+        Element RedundancyInfo = update_data.create_element("RedundancyInfo", controllerElement, doc);
 
+        for (String a : arr_of_attributes) {
+            String[] attributes_key_value = a.split(":=", -1);
+            if (exceptions.containsKey(attributes_key_value[0].strip())) {
+                if (exceptions.get(attributes_key_value[0].strip())[0].equals("Security"))
+                    update_data.create_attribute(exceptions.get(attributes_key_value[0].strip())[1],
+                            update_data.boolean_value(exceptions.get(attributes_key_value[0].strip())[1], attributes_key_value[1].strip()),
+                            Security,
+                            doc);
+                if (exceptions.get(attributes_key_value[0].strip())[0].equals("SafetyInfo"))
+                    update_data.create_attribute(exceptions.get(attributes_key_value[0].strip())[1],
+                            update_data.boolean_value(exceptions.get(attributes_key_value[0].strip())[1], attributes_key_value[1].strip()),
+                            SafetyInfo,
+                            doc);
+                if (exceptions.get(attributes_key_value[0].strip())[0].equals("RedundancyInfo"))
+                    update_data.create_attribute(exceptions.get(attributes_key_value[0].strip())[1],
+                            update_data.boolean_value(exceptions.get(attributes_key_value[0].strip())[1], attributes_key_value[1].strip()),
+                            RedundancyInfo,
+                            doc);
+            }
+        }
     }
 }

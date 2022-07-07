@@ -2,7 +2,6 @@ package com.gm.service;
 
 import com.gm.module.Controller;
 import com.gm.module.Datatypes;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -15,16 +14,12 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 public class parserService {
@@ -33,10 +28,9 @@ public class parserService {
     public void read_file() throws IOException {
 
 
-        HashMap<String, String> regexMapping = new HashMap<String, String>();
+        HashMap<String, String> regexMapping = new HashMap<>();
         regexMapping.put("controller","CONTROLLER\\s*(\\S*)\\s*\\((.*\\n*[^)]*)\\)");
         regexMapping.put("datatype", "(?s)(?=DATATYPE)(.*?)(?<=\\sEND_DATATYPE)");
-
 
         Path path = Paths.get("C:/Users/meets/Downloads/rt.L5K");
 
@@ -47,7 +41,7 @@ public class parserService {
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.newDocument();
 
-            ProcessingInstruction newPI = doc.createProcessingInstruction("myxml", "version=\"10.0\"");
+            ProcessingInstruction newPI = doc.createProcessingInstruction("MyXML", "version=\"10.0\"");
             doc.insertBefore(newPI, doc.getDocumentElement());
 
             // controller element
@@ -57,13 +51,11 @@ public class parserService {
             Controller controller = new Controller();
             controller.controllerHandler(data, doc,regexMapping.get("controller"), controllerElement);
 
-            Element Datatypes = doc.createElement("Datatypes");
-            controllerElement.appendChild(Datatypes);
-
+            Element DataTypes = doc.createElement("DataTypes");
+            controllerElement.appendChild(DataTypes);
 
             Datatypes datatypes = new Datatypes();
-            datatypes.handleDatatype(data, doc, regexMapping.get("datatype"), Datatypes);
-
+            datatypes.handleDatatype(data, doc, regexMapping.get("datatype"), DataTypes);
 
             // write the content into xml file
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
